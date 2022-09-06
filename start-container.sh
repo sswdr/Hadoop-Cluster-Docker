@@ -13,7 +13,7 @@ sudo docker run -itd \
                 -p 8088:8088 \
                 --name hadoop-master \
                 --hostname hadoop-master \
-                sswdr/hadoop:ubuntu20.4 &> /dev/null
+                sswdr/hadoop2.7.2:ubuntu20.04 &> /dev/null
 
 
 # start hadoop slave container
@@ -26,7 +26,7 @@ do
 	                --net=hadoop \
 	                --name hadoop-slave$i \
 	                --hostname hadoop-slave$i \
-	                sswdr/hadoop:ubuntu20.4 &> /dev/null
+	                sswdr/hadoop2.7.2:ubuntu20.04 &> /dev/null
 	i=$(( $i + 1 ))
 done 
 

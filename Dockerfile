@@ -1,17 +1,24 @@
+# ------------------构建临时容器，解压hadoop安装包----
+FROM ubuntu:20.04 as build
+COPY tar/hadoop-2.7.2.tar.gz /root
+RUN cd /root && tar -xzvf hadoop-2.7.2.tar.gz
+
+
+# ------------------开始构建hadoop镜像------------------
 FROM ubuntu:20.04
 
 MAINTAINER sswdr <sswdr@foxmail.com>
 
 WORKDIR /root
 
+# 20220906：去除压缩包直接放文件夹减少有一层COPY镜像体积
 # install hadoop 2.7.2
-COPY tar/hadoop-2.7.2.tar.gz /root
-RUN tar -xzvf hadoop-2.7.2.tar.gz && \
-    mv hadoop-2.7.2 /usr/local/hadoop && \
-    rm hadoop-2.7.2.tar.gz
+COPY --from=build /root/hadoop-2.7.2 /usr/local/hadoop
 
+# 20220906：新增清理缓存
 # install openssh-server, openjdk，vim，rsync，wget，ping，net-tools
-RUN apt-get update && apt-get install -y openssh-server openjdk-8-jdk vim rsync wget inetutils-ping net-tools
+RUN apt-get update && apt-get install -y openssh-server openjdk-8-jdk vim rsync wget inetutils-ping net-tools \
+    && apt-get autoclean && apt-get autoremove && apt-get clean
 
 # install xsync
 COPY xsync/xsync /bin
@@ -50,5 +57,8 @@ RUN chmod +x ~/start-hadoop.sh && \
 
 # format namenode
 RUN /usr/local/hadoop/bin/hdfs namenode -format
+
+# 设置大陆时区
+RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 
 CMD [ "sh", "-c", "service ssh start; bash"]
